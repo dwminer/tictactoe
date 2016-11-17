@@ -2,7 +2,7 @@
 
 import itertools, copy, pprint
 
-pp = pprint.PrettyPrinter(depth=3)
+pp = pprint.PrettyPrinter(depth=4)
 
 def newBoard():
 	return [[" " for i in range(3)] for j in range(3)]
@@ -39,20 +39,22 @@ def genBoards(node, turn):
 	return node
 
 def minmax(node, token):
-	return minmax_h(node, token, token)[2]
+	return minmax_h(node, token, token, 1)[2]
 
-def minmax_h(node, token, current):
+def minmax_h(node, token, current, depth):
 	if len(node['children']) > 0:
-		zips = zip((minmax_h(n, token, "O" if current == "X" else "X")[0] for n in node['children']), range(len(node['children'])), node['children'])
+		zips = zip((minmax_h(n, token, "O" if current == "X" else "X", depth+1)[0] for n in node['children']), range(len(node['children'])), node['children'])
 		if token == current:
 			return max(zips)
 		else:
 			return min(zips)
 	else:
 		if node['winner'] == token:
-			return [1, None, None]
+			return [1 / pow(2, depth), None, None]
+		elif node['winner'] == ("O" if token == "X" else "X"):
+			return [-1 / pow(2, depth), None, None]
 		else:
-			return [-1, None, None]
+			return [0, None, None]
 
 def playTicTacToe(tree, turn, humanplayer=False, humantoken="X"):
 	print(*tree['board'], sep="\n")
