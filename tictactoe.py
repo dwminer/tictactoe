@@ -38,14 +38,21 @@ def genBoards(node, turn):
 
 	return node
 
-def winningLeaves(node, token):
+def minmax(node, token):
+	return minmax_h(node, token, token)[2]
+
+def minmax_h(node, token, current):
 	if len(node['children']) > 0:
-		return sum((winningLeaves(n, token) for n in node['children']))
+		zips = zip((minmax_h(n, token, "O" if current == "X" else "X")[0] for n in node['children']), range(len(node['children'])), node['children'])
+		if token == current:
+			return max(zips)
+		else:
+			return min(zips)
 	else:
 		if node['winner'] == token:
-			return 1
+			return [1, None, None]
 		else:
-			return 0
+			return [-1, None, None]
 
 def playTicTacToe(tree, turn, humanplayer=False, humantoken="X"):
 	print(*tree['board'], sep="\n")
@@ -63,14 +70,7 @@ def playTicTacToe(tree, turn, humanplayer=False, humantoken="X"):
 			print("That's not a valid move.")
 			playTicTacToe(tree, turn, humanplayer, humantoken)
 	elif (not tree['winner']) and len(tree['children']) > 0:
-		zips = [list(tuple) for tuple in zip([(winningLeaves(n, opponent), -winningLeaves(n, turn)) for n in tree['children']], range(len(tree['children'])), tree['children'])]
-		for nextturn in zips:
-			if nextturn[2]['winner'] == turn:
-				nextturn[0] = (0, float('-inf'))
-			for nestedturn in nextturn[2]['children']:
-				if nestedturn['winner'] == opponent:
-					nextturn[0] = (float('inf'), 0)
-		move = min(zips)[2]
+		move = minmax(tree, turn)
 		playTicTacToe(move, opponent, humanplayer, humantoken)
 	else:
 		if tree['winner']:
